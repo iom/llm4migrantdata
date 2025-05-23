@@ -1,0 +1,91 @@
+---
+title: "Automated Migration Data Consolidation"
+subtitle: Technical Approach Paper for Public Stat Parsin with LLM
+date: today
+author: Edouard Legoupil, Chief Data Officer, IOM
+format: quarto_iom_article-html
+project:
+  type: website
+jupyter: python3
+kernel: project_drafter_kernel  # Must match the name above
+execute:
+  engine: jupyter
+  eval: true
+toc: true
+---
+
+##  
+
+## Introduction
+
+The notebook present an approach based on: https://github.com/worldbank/llm4data
+
+ 
+
+
+------------------------------------------------------------------------
+
+## Environment Set up
+
+The body of this document targets a technical audience. Below are all the codes so that the whole process can be reproduced and audited. This assume to use the following code within [Visual Studio Code](https://code.visualstudio.com/).
+
+First we need to use a virtual environment in Python development. This is essential for managing dependencies, avoiding conflicts, and ensuring reproducibility. It allows you to isolate project-specific libraries and versions, preventing interference with other projects or the global Python installation. This isolation helps maintain a clean development environment, simplifies project setup for collaborators, and enhances security by reducing the risk of introducing vulnerabilities. Overall, virtual environments provide a consistent and organized way to manage your Python projects effectively.
+
+Make sure to install the last [stable version of python language](https://www.python.org/downloads/) and create a dedicated python environment to have a fresh install where to manage correctly all the dependencies between packages. To specify a particular version of Python when creating a virtual environment, you can use the full path to the desired Python executable. Here is how you can do it:
+
+Open your terminal (Command Prompt, PowerShell, or any terminal emulator).
+
+Navigate to your project directory where you want to create the virtual environment.
+
+Run the following command to create a virtual environment,here called **`.venv`**:
+
+```{bash}
+#| eval: false 
+python -m venv .venv
+```
+
+Then, activate the virtual environment:
+```{bash} 
+#| eval: false
+.\.venv\Scripts\activate
+```
+
+ 
+
+Then, configure visual Studio Code to use the virtual environment: Open the Command Palette using the shortcut `Ctrl+Shift+P` and type `Jupyter: Select Interpreter` and select the interpreter that corresponds to your newly created virtual environment: `('venv': venv)`.
+
+Once this environment selected as a kernel to run the notebook, we can install the required python modules the rest of the process:
+
+```{python} 
+#| eval: false
+%pip install llm4data poetry
+```
+
+
+then Restart the jupyter kernel for this notebook
+```{python}
+#| eval: false
+%reset -f
+```
+
+
+```{python}
+from llm4data.prompts.indicators import wdi
+
+# Create a WDI API prompt object
+wdi_api = wdi.WDIAPIPrompt()
+
+# Send a prompt to the LLM to get a WDI API URL relevant to the prompt
+response = wdi_api.send_prompt(
+    "What is the gdp and the co2 emissions of the philippines and its neighbors in the last decade?"
+)
+
+# Parse the response to get the WDI API URL
+wdi_api_url = wdi_api.parse_response(response)
+print(wdi_api_url)
+```
+
+```{python}
+poetry run python -m scripts.scrapers.indicators.wdi --data_dir=data/indicators/wdi --force
+```
+ 
